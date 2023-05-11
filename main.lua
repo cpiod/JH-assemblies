@@ -20,17 +20,19 @@ function get_exotic( item )
     result.count = count
 
     assembly = {
-        {base="9mm pistol", new="exo_mpistol", P=1}
+        { base = "pistol", new = "exo_mpistol", P = 1 },
+        { base = "armor_green", new = "exo_armor_ablative", P = 1},
+        { base = "helmet_green", new = "exo_helmet_blast", P = 1 },
     }
-
-    for _,v in pairs(assembly) do
-        if item.text.name == v.base then
+    mods = {"P","A","B","S","V","C","E","O","N"}
+    for _,v in ipairs(assembly) do
+        if world:get_id(item) == v.base then
             local good = true
-            -- TODO: check other mods
-            if v.P and not (result["P"] and result["P"] >= v.P) then
-                good = false
+            for _,mod in ipairs(mods) do
+                if v[mod] and not (result[mod] and result[mod] >= v[mod]) then
+                    good = false
+                end
             end
-
             if good then
                 return v.new
             end
@@ -41,31 +43,49 @@ function get_exotic( item )
 end
 
 
-register_blueprint "runtime_assembly"
+register_blueprint "trait_assembly"
 {
-    flags = { EF_NOPICKUP },
-
+    blueprint = "trait",
     text = {
-        assembly = "You assembled a new weapon!",
+        name   = "Assemble",
+        desc   = "",
+        full   = "",
+        abbr   = "",
+        denied = "{RNothing to assemble!}",
+        assembly = "You assembled a ",
     },
     callbacks = {
-        on_post_command = [[
-            function ( self, player, cmt, tgt, time )
-                local level = world:get_level()
-                -- TODO: check armor as well
-                local weapon = player:get_weapon()
-                if weapon then
-                    exo = get_exotic(weapon)
-                    if exo then
-                        ui:set_hint( self.text.assembly, 2001, 0 )
-                        level:drop_item( player, weapon )
-                        world:destroy(weapon)
-                        player:pickup( exo, true )
+        on_activate = [=[
+            function(self,entity)
+                return -1
+            end
+        ]=],
+        on_use = [=[
+            function ( self, player, level, target )
+                slots = {"1","2","3","4","armor","head"}
+                for _,slot in pairs(slots) do
+                    item = world:get_slot( player, slot )
+                    if item then
+                        exo = get_exotic(item)
+                        if exo then
+                            world:play_voice("vo_unique")
+                            ui:set_hint("Bye {!"..world:get_name(item).."}, hello {!"..world:get_text(exo,"name").."}!", 2001, 0)
+                            level:drop_item( player, item )
+                            world:destroy(item)
+                            -- TODO: apply manufacturer perk?
+                            player:pickup( exo, true )
+                            return -1
+                        end
                     end
                 end
+                ui:set_hint( self.text.denied, 1001, 0 )
             end
-        ]]
-    }
+        ]=],
+    },
+    skill = {
+        cooldown = 0,
+        cost = 0
+    },
 }
 
 register_blueprint "assembly_mod"
@@ -83,13 +103,20 @@ register_blueprint "assembly_mod"
     callbacks = {
         on_create_player = [[
             function( self, player )
-                player:attach( "runtime_assembly" )
+                -- player:attach( "runtime_assembly" )
+                player:attach( "trait_assembly" )
                 player:attach( "pack_power" )
                 player:attach( "pack_power" )
                 player:attach( "pack_power" )
                 player:attach( "pack_bulk" )
                 player:attach( "pack_bulk" )
                 player:attach( "pack_bulk" )
+                player:attach( "pack_accuracy" )
+                player:attach( "pack_accuracy" )
+                player:attach( "pack_accuracy" )
+                player:attach( "armor_green" )
+                player:attach( "helmet_green" )
+                player:attach( "pistol" )
             end
         ]],
     },
