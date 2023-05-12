@@ -1,12 +1,67 @@
+-- whizkid 1 necessary, cost 1 multitool
+assembly_l1 = {
+    { base = "knife", new = "exo_knife", A = 1, P = 1 },
+    { base = "pistol", new = "exo_cpistol", A = 2 }, -- calibrated
+    { base = "smg", new = "exo_ssmg", B = 2 }, -- storm
+    { base = "hunter_rifle", new = "exo_toxi_rifle", P = 2 },
+    { base = "auto_rifle", new = "exo_nailgun", B = 1, P = 1 },
+    { base = "shotgun", new = "exo_cshotgun", A = 2 }, -- focused
+    { base = "armor_green", new = "exo_armor_necrotic", B = 1, A = 1 }, -- any armor ?
+}
+for _,v in ipairs(assembly_l1) do
+    v.mt = 1
+end
+-- TODO: add recipes with AMP
+
+-- whizkid 2 necessary, cost 2 multitools and a relic
+assembly_l2 = {
+    { base = "exo_egls", new = "exo_egls" }, -- "reload" EGLS
+    { base = "exo_mag_rifle", new = "exo_mag_rifle" }, -- "reload" railgun
+    { base = "exo_mpistol", new = "exo_mpistol" }, -- "reload" mag pistol
+    { base = "exo_nailgun", new = "exo_snailgun", P = 1 },
+    { base = "rocket_launcher", new = "exo_micro_launcher", P = 1 },
+    { base = "helmet_blue", new = "exo_helmet_blast", B = 2, P = 1 },
+}
+for _,v in ipairs(assembly_l2) do
+    v.mt = 2
+    v.relic = 1
+end
+
+-- whizkid 2 necessary, cost 2 multitools, the heart and 40 HP
+assembly_l3 = {
+    -- tier 1 -> tier 2, tier 2 -> tier 3 weapon of the same type, requires heart so cannot be cumulated with dark cathedral
+    { base = "uni_revolver_love", new = "uni_pistol_hate" },
+    { base = "uni_pistol_hate", new = "uni_pistol_death" },
+-- TODO: complete
+    { base = "pack_power", new = "powerup_backpack" }, -- maybe permanent_backpack ?
+    { base = "pack_bulk", new = "adv_pack_sustain" },
+    { base = "adv_pack_sustain", new = "exo_pack_nano" },
+    { base = "pack_bulk", new = "exo_pack_onyx" },
+    { base = "armor_red", new = "armor_cri", A = 1, B = 1, P = 1 },
+    { base = "relic_major", new = "relic_medusa_eye" },
+    { base = "relic_major", new = "relic_medusa_tentacle" },
+}
+for _,v in ipairs(assembly_l3) do
+    v.mt = 2
+    v.hp = 40
+    v.heart = true
+end
+
+assembly_test = {
+    { base = "base_weapon", new = "exo_mpistol", P = 1 },
+    { base = "pistol", new = "exo_cpistol", P = 1 },
+    { base = "armor_green", new = "exo_armor_ablative", P = 1},
+    { base = "helmet_green", new = "exo_helmet_blast", P = 1 },
+}
+
 
 function get_recipes( item )
     local mods        = core.blueprint_list_by_data_entry( "mod" )
     local result      = {}
-    local count       = 0
     local mod_data    = {}
-	for _,m in ipairs( mods ) do
+    for _,m in ipairs( mods ) do
         mod_data[ m.id ] = m.data.mod
-	end
+    end
     for c in ecs:children( item ) do
         local mid      = world:get_id( c )
         local mod_data = mod_data[ mid ]
@@ -14,74 +69,17 @@ function get_recipes( item )
             local letter     = mod_data.letter
             local level      = c.attributes.mod_level
             result[ letter ] = level
-            count            = count + level
         end
     end
-    result.count = count
 
     -- TODO handle trait level
     -- TODO handle other requirements (heart, relic, multitool, etc.)
 
-    -- whizkid 1 necessary, cost 1 multitool
-    local assembly_l1 = {
-        { base = "knife", new = "exo_knife", A = 1, P = 1 },
-        { base = "pistol", new = "exo_cpistol", A = 2 }, -- calibrated
-        { base = "smg", new = "exo_ssmg", B = 2 }, -- storm
-        { base = "hunter_rifle", new = "exo_toxi_rifle", P = 2 },
-        { base = "auto_rifle", new = "exo_nailgun", B = 1, P = 1 },
-        { base = "shotgun", new = "exo_cshotgun", A = 2 }, -- focused
-        { base = "armor_green", new = "exo_armor_necrotic", B = 1, A = 1 }, -- any armor ?
-    }
-    for _,v in ipairs(assembly_l1) do
-        v.mt = 1
-    end
-    -- TODO: add recipes with AMP
-
-    -- whizkid 2 necessary, cost 2 multitools and a relic
-    local assembly_l2 = {
-        { base = "exo_egls", new = "exo_egls" }, -- "reload" EGLS
-        { base = "exo_mag_rifle", new = "exo_mag_rifle" }, -- "reload" railgun
-        { base = "exo_mpistol", new = "exo_mpistol" }, -- "reload" mag pistol
-        { base = "exo_nailgun", new = "exo_snailgun", P = 1 },
-        { base = "rocket_launcher", new = "exo_micro_launcher", P = 1 },
-        { base = "helmet_blue", new = "exo_helmet_blast", B = 2, P = 1 },
-    }
-    for _,v in ipairs(assembly_l2) do
-        v.mt = 2
-        v.relic = 1
-    end
-
-    -- whizkid 2 necessary, cost 2 multitools, the heart and 40 HP
-    local assembly_l3 = {
-        -- tier 1 -> tier 2, tier 2 -> tier 3 weapon of the same type, requires heart so cannot be cumulated with dark cathedral
-        { base = "uni_revolver_love", new = "uni_pistol_hate" },
-        { base = "uni_pistol_hate", new = "uni_pistol_death" },
--- TODO: complete
-        { base = "pack_power", new = "powerup_backpack" }, -- maybe permanent_backpack ?
-        { base = "pack_bulk", new = "adv_pack_sustain" },
-        { base = "adv_pack_sustain", new = "exo_pack_nano" },
-        { base = "pack_bulk", new = "exo_pack_onyx" },
-        { base = "armor_red", new = "armor_cri", A = 1, B = 1, P = 1 },
-        { base = "relic_major", new = "relic_medusa_eye" },
-        { base = "relic_major", new = "relic_medusa_tentacle" },
-    }
-    -- TODO: be able to specify a sub-blueprint in base (like relic_major)
-    for _,v in ipairs(assembly_l3) do
-        v.mt = 2
-        v.hp = 40
-        v.heart = true
-    end
-
-    local assembly_test = {
-        { base = "pistol", new = "exo_mpistol", P = 1 },
-        { base = "pistol", new = "exo_cpistol", P = 1 },
-        { base = "armor_green", new = "exo_armor_ablative", P = 1},
-        { base = "helmet_green", new = "exo_helmet_blast", P = 1 },
-    }
     local mods = {"P","A","B","S","V","C","E","O","N"}
     local recipes = {}
     for _,v in ipairs(assembly_test) do
         if world:get_id(item) == v.base then
+        -- TODO: be able to specify a sub-blueprint in base (like relic_major)
             local good = true
             -- check all requirements
             for _,mod in ipairs(mods) do
@@ -113,7 +111,8 @@ function run_assembly_ui( self, entity )
                 table.insert(list, {
                     name = name,
                     target = self,
-                    recipe = recipe,
+                    parameter = item,
+                    id = recipe.new,
                 })
             end
         end
@@ -125,17 +124,16 @@ function run_assembly_ui( self, entity )
     end
 
     table.insert( list, {
-        name = "Cancel",
+        name = ui:text("ui.lua.common.cancel"),
         target = self,
         cancel = true,
     })
     list.title = "What to assemble?"
     list.size  = coord( math.max( 30, max_len + 6 ), 0 )
-    ui:terminal( entity, self, list )
+    ui:terminal( entity, what, list )
 end
 
 -- TODO: requirement (whizkid ?)
--- TODO: vérifier si assembly possible ?
 register_blueprint "trait_assembly"
 {
     blueprint = "trait",
@@ -146,11 +144,6 @@ register_blueprint "trait_assembly"
         abbr   = "",
     },
     callbacks = {
-        on_activate = [=[
-            function(self,entity)
-                return -1
-            end
-        ]=],
 
         on_use = [=[
             function( self, entity )
@@ -162,22 +155,17 @@ register_blueprint "trait_assembly"
                 end
             end
         ]=],
+
         on_activate = [=[
-            function ( self, player, level, param, recipe )
-                nova.log("ASSEMBLY - on activate called "..tostring(param).." "..tostring(recipe))
+            function ( self, player, level, param, id )
                 if param then
-                    item = param.item
-                    exo = param.new
-                    nova.log("item:"..item)
-                    nova.log("exo:"..exo)
-                    item = list[1].item
-                    exo = list[1].new
+                    local item = param
+                    local new = world:resolve_hash( id )
                     world:play_voice("vo_unique")
-                    -- ui:set_hint("Bye {!"..world:get_name(item).."}, hello {!"..world:get_text(exo,"name").."}!", 2001, 0)
                     level:drop_item( player, item )
                     world:destroy(item)
                     -- TODO: apply manufacturer perk?
-                    player:pickup( exo, true )
+                    player:pickup( new, true )
                     return 99
                 else
                     return 0
