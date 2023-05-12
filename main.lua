@@ -50,12 +50,51 @@ end
 assembly_test = {
     { base = "base_weapon", new = "exo_mpistol", P = 1 },
     { base = "pistol", new = "exo_cpistol", P = 1 },
-    { base = "armor_green", new = "exo_armor_ablative", P = 1},
-    { base = "helmet_green", new = "exo_helmet_blast", P = 1 },
+    { base = "armor_green", new = "exo_armor_ablative", P = 1, heart = true},
+    { base = "helmet_green", new = "exo_helmet_blast", P = 1, heart = true },
 }
+for _,v in ipairs(assembly_test) do
+    v.mt = 1
+end
+
+function can_pay(player, base, new)
+    nova.log("Looking for assembly")
+    for _,v in ipairs(assembly_test) do
+        if base == v.base and new == v.new then -- found it
+            -- can pay?
+            return not ((v.mt and world:has_item( player, "kit_multitool" ) < v.mt) or
+            (v.heart and world:has_item( player, "frozen_heart") == 0) or
+            (v.relic and not world:get_slot( player, "relic" )) or
+            (v.hp and player.health.current <= v.hp))
+        end
+    end
+end
+
+function pay_cost(player, item, new)
+    local level = world:get_level()
+    for _,v in ipairs(assembly_test) do
+        if world:get_id(item) == v.base and new == v.new then -- found it
+            -- pay
+            if v.mt then
+                world:remove_items(player, "kit_multitool", v.mt)
+            end
+            if v.heart then
+                world:remove_items(player, "frozen_heart", 1)
+            end
+            if v.relic then
+                local r = world:get_slot(player, "relic")
+                level:drop_item(player, r)
+                world:destroy(r)
+            end
+            if v.hp then
+                level:apply_damage( player, player, v.hp, ivec2(), "internal" )
+            end
+        end
+    end
+end
 
 
-function get_recipes( item )
+function get_recipes(player, item)
     local mods        = core.blueprint_list_by_data_entry( "mod" )
     local result      = {}
     local mod_data    = {}
@@ -88,7 +127,7 @@ function get_recipes( item )
                     break
                 end
             end
-            if good then
+            if good and can_pay(player, v.base, v.new) then
                 table.insert(recipes, v)
             end
         end
@@ -104,7 +143,7 @@ function run_assembly_ui( self, entity )
     for _,slot in ipairs(slots) do
         local item = world:get_slot( entity, slot )
         if item then
-            local recipes = get_recipes(item)
+            local recipes = get_recipes(entity, item)
             for _,recipe in ipairs(recipes) do
                 local name = world:get_name(item).." {Y=>} "..world:get_text(recipe.new,"name")
                 max_len = math.max( max_len, string.len( name ) )
@@ -161,15 +200,15 @@ register_blueprint "trait_assembly"
                 if param then
                     local item = param
                     local new = world:resolve_hash( id )
+                    pay_cost(player,item, new)
                     world:play_voice("vo_unique")
                     level:drop_item( player, item )
                     world:destroy(item)
                     -- TODO: apply manufacturer perk?
                     player:pickup( new, true )
                     return 99
-                else
-                    return 0
                 end
+                return 0
             end
         ]=],
     },
@@ -200,13 +239,14 @@ register_blueprint "assembly_mod"
                 player:attach( "pack_power" )
                 player:attach( "pack_bulk" )
                 player:attach( "pack_bulk" )
-                player:attach( "pack_bulk" )
-                player:attach( "pack_accuracy" )
                 player:attach( "pack_accuracy" )
                 player:attach( "pack_accuracy" )
                 player:attach( "armor_green" )
                 player:attach( "helmet_green" )
+                player:attach( "frozen_heart" )
                 player:attach( "pistol" )
+                player:attach("relic_fiend_heart")
+                player:attach( "kit_multitool", { stack = { amount = 3 } } )
             end
         ]],
     },
