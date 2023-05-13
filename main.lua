@@ -1,15 +1,13 @@
 classes = { "klass_marine", "klass_scout", "klass_technician" }
 
 for _,k in ipairs(classes) do
-    table.insert(blueprints[k].klass.traits, #blueprints[k].klass.traits-4, { "trait_assembly", max = 1, require = { trait_whizkid = 1, } })
-    -- table.insert(blueprints[k].klass.traits, #blueprints[k].klass.traits-4, { "trait_assembly1", max = 1, require = { trait_whizkid = 2, trait_assembly1 = 1 } })
-    -- table.insert(blueprints[k].klass.traits, #blueprints[k].klass.traits-4, { "trait_assembly1", max = 1, require = { trait_whizkid = 1, trait_assembly1 = 1 } })
+    table.insert(blueprints[k].klass.traits, #blueprints[k].klass.traits-4, { "trait_assembly", max = 3, require = { trait_whizkid = 1, } })
 end
 
 -- whizkid 1 necessary, cost 1 multitool
 assembly_l1 = {
     { base = "knife", new = "exo_knife", A = 1, P = 1 },
-    { base = "pistol", new = "exo_cpistol", A = 2 }, -- calibrated
+    { base = "rpistol", new = "exo_fpistol", A = 2 }, -- flintlock
     { base = "smg", new = "exo_ssmg", B = 2 }, -- storm
     { base = "hunter_rifle", new = "exo_toxi_rifle", P = 2 },
     { base = "auto_rifle", new = "exo_nailgun", B = 1, P = 1 },
@@ -51,7 +49,6 @@ assembly_l3 = {
     { base = "relic_major", new = "relic_medusa_tentacle" },
 }
 for _,v in ipairs(assembly_l3) do
-    v.mt = 2
     v.hp = 40
     v.heart = true
 end
@@ -186,9 +183,27 @@ register_blueprint "trait_assembly"
 {
     blueprint = "trait",
     text = {
-        name   = "Assemble",
+        name   = "Assembler",
         desc   = "ACTIVE SKILL - Assemble new items from existing ones",
-        full   = "You are a master tinkerer.\n\n{!LEVEL 1} - AP knife -> quickblade, A2 pistol -> calibrated 9mm, B2 SMG -> Storm 9mm, P2 hunter rifle -> Toxirifle, PB auto rifle -> nailgun, A2 shotgun -> focused shotgun, AB green armor -> necrotic armor",
+        full   = [[{!LEVEL 1} - Cost: {!1 multitool}
+AP combat knife   {Y=>} quickblade
+B2 9mm SMG        {Y=>} 9mm storm
+P2 .44 revolver   {Y=>} .44 flintlock
+P2 hunter rifle   {Y=>} toxin rifle
+PB auto rifle     {Y=>} nailgun
+A2 12ga shotgun   {Y=>} focused shotgun
+AB green armor    {Y=>} necrotic armor
+{!LEVEL 2} - Cost: {!2 multitools}, {!1 relic}
+Reload EGLS/magrail - Restore mag-pistol
+P nailgun         {Y=>} super nailgun
+P R. Launcher     {Y=>} Micro launcher
+BBP blue helmet   {Y=>} Blast helmet
+{!LEVEL 3} - Cost: {!40 HP}, a {!frozen heart}
+Upgrade unique to next tier
+P mod             {Y=>} Backpack
+A mod             {Y=>} S mod
+B mod             {Y=>} O mod
+ABP red armor     {Y=>} CRI armor]],
         abbr   = "Asm",
     },
     callbacks = {
