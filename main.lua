@@ -1,3 +1,11 @@
+classes = { "klass_marine", "klass_scout", "klass_technician" }
+
+for _,k in ipairs(classes) do
+    table.insert(blueprints[k].klass.traits, #blueprints[k].klass.traits-4, { "trait_assembly", max = 1, require = { trait_whizkid = 1, } })
+    -- table.insert(blueprints[k].klass.traits, #blueprints[k].klass.traits-4, { "trait_assembly1", max = 1, require = { trait_whizkid = 2, trait_assembly1 = 1 } })
+    -- table.insert(blueprints[k].klass.traits, #blueprints[k].klass.traits-4, { "trait_assembly1", max = 1, require = { trait_whizkid = 1, trait_assembly1 = 1 } })
+end
+
 -- whizkid 1 necessary, cost 1 multitool
 assembly_l1 = {
     { base = "knife", new = "exo_knife", A = 1, P = 1 },
@@ -8,6 +16,7 @@ assembly_l1 = {
     { base = "shotgun", new = "exo_cshotgun", A = 2 }, -- focused
     { base = "armor_green", new = "exo_armor_necrotic", B = 1, A = 1 }, -- any armor ?
 }
+
 for _,v in ipairs(assembly_l1) do
     v.mt = 1
 end
@@ -178,9 +187,9 @@ register_blueprint "trait_assembly"
     blueprint = "trait",
     text = {
         name   = "Assemble",
-        desc   = "",
-        full   = "",
-        abbr   = "",
+        desc   = "ACTIVE SKILL - Assemble new items from existing ones",
+        full   = "You are a master tinkerer.\n\n{!LEVEL 1} - AP knife -> quickblade, A2 pistol -> calibrated 9mm, B2 SMG -> Storm 9mm, P2 hunter rifle -> Toxirifle, PB auto rifle -> nailgun, A2 shotgun -> focused shotgun, AB green armor -> necrotic armor",
+        abbr   = "Asm",
     },
     callbacks = {
 
@@ -206,7 +215,7 @@ register_blueprint "trait_assembly"
                     world:destroy(item)
                     -- TODO: apply manufacturer perk?
                     player:pickup( new, true )
-                    return 99
+                    return 100
                 end
                 return 0
             end
