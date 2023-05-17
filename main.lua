@@ -4,6 +4,23 @@ table.insert(blueprints["klass_marine"].klass.traits, #blueprints["klass_marine"
 table.insert(blueprints["klass_scout"].klass.traits, #blueprints["klass_scout"].klass.traits-4, { "trait_assembly", max = 3, require = { trait_hacking = 1, } })
 table.insert(blueprints["klass_technician"].klass.traits, #blueprints["klass_technician"].klass.traits-4, { "trait_assembly", max = 3, require = { trait_whizkid = 1, } })
 
+function complete_assembly(assembly, mt_cost, relic_cost, heart_cost, max_hp_cost)
+    local len = #assembly
+    for j = 1,len do
+        v = assembly[j]
+        v.mt = mt_cost
+        v.relic = relic_cost
+        v.heart = heart_cost
+        v.max_hp = max_hp_cost
+        local l = {}
+        for k,i in pairs(v) do
+            l[k] = i
+        end
+        l.base = "adv_"..l.base
+        table.insert(assembly, l)
+    end
+end
+
 -- cost 1 multitool
 assembly_l1 = {
     { base = "knife", new = "exo_knife", A = 1, P = 1 },
@@ -34,10 +51,7 @@ assembly_l1 = {
     { base = "ammo_40", new = "napalm_grenade", base_amount = 15 },
 }
 
-for _,v in ipairs(assembly_l1) do
-    v.mt = 1
-end
--- TODO: add recipes with AMP
+complete_assembly(assembly_l1, 1)
 
 -- cost 2 multitools and a relic
 assembly_l2 = {
@@ -45,15 +59,12 @@ assembly_l2 = {
     { base = "exo_mag_rifle", new = "exo_mag_rifle" }, -- "reload" railgun
     { base = "exo_armor_ablative", new = "exo_armor_ablative" }, -- "repair" ablative
     { base = "exo_nailgun", new = "exo_snailgun" },
-    { base = "rocket_launcher", new = "exo_toxin_launcher", AV = 1 },
-    { base = "helmet_blue", new = "exo_helmet_blast", AV = 1 },
+    { base = "adv_rocket_launcher", new = "exo_toxin_launcher" },
+    { base = "adv_helmet_blue", new = "exo_helmet_blast" },
     { base = "medkit_large", new = "combatpack_large" },
 }
 
-for _,v in ipairs(assembly_l2) do
-    v.mt = 2
-    v.relic = 1
-end
+complete_assembly(assembly_l2, 2, 1)
 
 -- cost the heart and 10 max HP
 assembly_l3 = {
@@ -135,24 +146,13 @@ assembly_l3 = {
     { base = "ancient_relic_ancient_armband", new = "exo_pack_onyx" },
 
 }
-for _,v in ipairs(assembly_l3) do
-    v.max_hp = 10
-    v.heart = true
-end
 
-assembly_test = {
-    { base = "base_weapon", new = "exo_mpistol", P = 1, max_hp = 20 },
-    { base = "pistol", new = "exo_nailgun", P = 1 },
-    { base = "armor_green", new = "exo_armor_ablative", P = 1, heart = true, max_hp = 20},
-    { base = "helmet_green", new = "exo_helmet_blast", P = 1, heart = true },
-}
-for _,v in ipairs(assembly_test) do
-    v.mt = 1
-end
+complete_assembly(assembly_l3, nil, nil, 1, 10)
 
-function can_pay(player, base, new)
-    nova.log("Looking for assembly")
-    for _,v in ipairs(assembly_test) do
+all_assemblies = { assembly_l1, assembly_l2, assembly_l3 }
+
+function can_pay(player, base, new, recipes_list)
+    for _,v in ipairs(recipes_list) do
         if base == v.base and new == v.new then -- found it
             -- can pay?
             return not ((v.mt and world:has_item( player, "kit_multitool" ) < v.mt) or
@@ -163,9 +163,9 @@ function can_pay(player, base, new)
     end
 end
 
-function pay_cost(player, item, new)
+function pay_cost(player, item, new, recipes_list)
     local level = world:get_level()
-    for _,v in ipairs(assembly_test) do
+    for _,v in ipairs(recipes_list) do
         if world:get_id(item) == v.base and new == v.new then -- found it
             -- pay
             if v.mt then
@@ -183,12 +183,14 @@ function pay_cost(player, item, new)
                 level:apply_damage( player, player, v.max_hp, ivec2(), "internal" )
                 player.attributes.health = player.attributes.health - v.max_hp
             end
+            return true
         end
     end
+    return false
 end
 
 
-function get_recipes(player, item)
+function get_recipes(player, item, recipes, recipes_list)
     local mods        = core.blueprint_list_by_data_entry( "mod" )
     local result      = {}
     local mod_data    = {}
@@ -209,8 +211,7 @@ function get_recipes(player, item)
     -- TODO handle other requirements (heart, relic, multitool, etc.)
 
     local mods = {"P","A","B","S","V","C","E","O","N"}
-    local recipes = {}
-    for _,v in ipairs(assembly_test) do
+    for _,v in ipairs(recipes_list) do
         if world:get_id(item) == v.base then
         -- TODO: be able to specify a sub-blueprint in base (like relic_major)
             local good = true
@@ -221,7 +222,7 @@ function get_recipes(player, item)
                     break
                 end
             end
-            if good and can_pay(player, v.base, v.new) then
+            if good and can_pay(player, v.base, v.new, recipes_list) then
                 table.insert(recipes, v)
             end
         end
@@ -237,7 +238,10 @@ function run_assembly_ui( self, entity )
     for _,slot in ipairs(slots) do
         local item = world:get_slot( entity, slot )
         if item then
-            local recipes = get_recipes(entity, item)
+            local recipes = {}
+            for i = 1, entity.attributes.assembly_level do
+                get_recipes(entity, item, recipes, all_assemblies[i])
+            end
             for _,recipe in ipairs(recipes) do
                 -- put assembly level
                 local name = world:get_name(item).." {Y=>} "..world:get_text(recipe.new,"name")
@@ -274,12 +278,12 @@ register_blueprint "trait_assembly"
         name   = "Assembler",-- indicate current number of availables assemblies
         desc   = "ACTIVE SKILL - You make new toys from old ones. Manufacturer perks are kept!",
         full   = [[{!LEVEL 1} - Cost: {!1 multitool}
- AP combat knife   => quickblade
- AP combat pistol  => CRI blaster
- BP hunter rifle   => toxin rifle
- BP 9mm auto rifle => nail gun
- AB green armor    => duramesh armor
- AB yellow weapon  => red weapon{!*}
+ PA combat knife   => quickblade
+ PA combat pistol  => CRI blaster
+ PB hunter rifle   => toxin rifle
+ PB 9mm auto rifle => nail gun
+ BA green armor    => duramesh armor
+ BA yellow weapon  => red weapon{!*}
  15 40mm grenades  => non-plasma grenade
 {!LEVEL 2} - Cost: {!2 multitools}, {!1 relic}
  restore magrail / EGLS / ablative armor
@@ -311,22 +315,36 @@ register_blueprint "trait_assembly"
 
         on_activate = [=[
             function ( self, player, level, param, id )
-                if level then
+                if level then -- UI
                     if param then
                         local item = param
                         local new = world:resolve_hash( id )
-                        pay_cost(player,item, new)
-                        world:play_voice("vo_unique")
+                        for i = 1, player.attributes.assembly_level do
+                            local paid = pay_cost(player, item, new, all_assemblies[i])
+                            if paid then
+                                recipe_level = i
+                                break
+                            end
+                        end
+                        -- pay_cost(player, item, new, assembly_l1)
+                        if recipe_level == 3 then
+                            world:play_voice("vo_unique")
+                        else
+                            world:play_voice("vo_special_box")
+                        end
                         level:drop_item( player, item )
                         world:destroy(item)
                         -- TODO: apply manufacturer perk?
                         player:pickup( new, true )
                         return 100
                     end
-                else
+                    return 0
+                else -- trait is bought
                     player.attributes.assembly_level = ( player.attributes.assembly_level or 0 ) + 1
+                    if player.attributes.assembly_level == 1 then
+                        player:attach("trait_assembly")
+                    end
                 end
-                return 0
             end
         ]=],
     },
@@ -351,7 +369,6 @@ register_blueprint "assembly_mod"
     callbacks = {
         on_create_player = [[
             function( self, player )
-                player:attach( "trait_assembly" )
                 player:attach( "pack_power" )
                 player:attach( "pack_power" )
                 player:attach( "pack_power" )
@@ -360,12 +377,13 @@ register_blueprint "assembly_mod"
                 player:attach( "pack_accuracy" )
                 player:attach( "pack_accuracy" )
                 player:attach( "armor_green" )
-                player:attach( "helmet_green" )
+                player:attach( "adv_helmet_blue" )
                 player:attach( "frozen_heart" )
                 player:attach( "pistol" )
+                player:attach( "adv_bpistol" )
                 player:attach("relic_fiend_heart")
                 player:attach( "kit_multitool", { stack = { amount = 3 } } )
-                -- world:add_experience( player, 10000 )
+                player.progression.experience = 10000
             end
         ]],
     },
