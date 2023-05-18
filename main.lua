@@ -268,7 +268,7 @@ function get_recipes(player, item, recipes, recipes_list)
     return recipes
 end
 
-function run_assembly_ui( self, entity )
+function get_all_possible_assemblies(self, entity)
     local list = {}
     local max_len = 1
     local slots = {"1","2","3","4","armor","head","utility"}
@@ -293,6 +293,11 @@ function run_assembly_ui( self, entity )
             end
         end
     end
+    return list, max_len
+end
+
+function run_assembly_ui( self, entity )
+    local list, max_len = get_all_possible_assemblies(self, entity)
 
     if #list == 0 then
         ui:set_hint( "Nothing to assemble!", 1001, 0 )
@@ -349,6 +354,18 @@ register_blueprint "trait_assembly"
                     return -1
                 end
             end
+        ]=],
+
+        on_post_command = [=[
+            function ( self, actor, cmt, weapon, time )
+                local list = get_all_possible_assemblies(self, actor)
+                if #list == 0 then
+                    self.text.name = "{dAssembler}"
+                else
+                    self.text.name = "Assembler ("..#list..")"
+                end
+            end
+
         ]=],
 
         on_activate = [=[
