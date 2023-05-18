@@ -4,7 +4,7 @@ table.insert(blueprints["klass_marine"].klass.traits, #blueprints["klass_marine"
 table.insert(blueprints["klass_scout"].klass.traits, #blueprints["klass_scout"].klass.traits-4, { "trait_assembly", max = 3, require = { trait_hacking = 1, } })
 table.insert(blueprints["klass_technician"].klass.traits, #blueprints["klass_technician"].klass.traits-4, { "trait_assembly", max = 3, require = { trait_whizkid = 1, } })
 
-function complete_assembly(assembly, mt_cost, relic_cost, heart_cost, max_hp_cost)
+function complete_assembly(assembly, desc, mt_cost, relic_cost, heart_cost, max_hp_cost)
     local len = #assembly
     for j = 1,len do
         v = assembly[j]
@@ -12,6 +12,7 @@ function complete_assembly(assembly, mt_cost, relic_cost, heart_cost, max_hp_cos
         v.relic = relic_cost
         v.heart = heart_cost
         v.max_hp = max_hp_cost
+        v.desc = desc
         local l = {}
         for k,i in pairs(v) do
             l[k] = i
@@ -24,7 +25,7 @@ end
 -- cost 1 multitool
 assembly_l1 = {
     { base = "knife", new = "exo_knife", A = 1, P = 1 },
-    { base = "bpistol", new = "exo_blaster", A = 1, P = 1 },
+    { base = "apistol", new = "exo_blaster", A = 1, P = 1 },
     { base = "hunter_rifle", new = "exo_toxi_rifle", P = 1, B = 1 },
     { base = "auto_rifle", new = "exo_nailgun", B = 1, P = 1 },
     { base = "armor_green", new = "exo_armor_duramesh", B = 1, A = 1 },
@@ -42,16 +43,13 @@ assembly_l1 = {
     { base = "ashotgun", new = "dshotgun", B = 1, A = 1 }, -- auto-shotgun to dual shotgun
     { base = "rocket_launcher", new = "energy_cannon", B = 1, A = 1 },
 
-    -- grenades -- TODO
-    { base = "ammo_40", new = "smoke_grenade", base_amount = 15 },
-    { base = "ammo_40", new = "frag_grenade", base_amount = 15 },
-    { base = "ammo_40", new = "krak_grenade", base_amount = 15 },
-    { base = "ammo_40", new = "emp_grenade", base_amount = 15 },
-    { base = "ammo_40", new = "gas_grenade", base_amount = 15 },
-    { base = "ammo_40", new = "napalm_grenade", base_amount = 15 },
+    -- grenades
+    { base = "grenade_launcher", new = "frag_grenade" },
+    { base = "grenade_launcher", new = "emp_grenade" },
+    { base = "grenade_launcher", new = "smoke_grenade" },
 }
 
-complete_assembly(assembly_l1, 1)
+complete_assembly(assembly_l1, "Cost: 1 multitool", 1)
 
 -- cost 2 multitools and a relic
 assembly_l2 = {
@@ -61,11 +59,13 @@ assembly_l2 = {
     { base = "exo_armor_ablative", new = "exo_armor_ablative" }, -- "repair" ablative
     { base = "exo_nailgun", new = "exo_snailgun" },
     { base = "adv_rocket_launcher", new = "exo_toxin_launcher" },
+    { base = "adv_helmet_green", new = "exo_helmet_blast" },
     { base = "adv_helmet_blue", new = "exo_helmet_blast" },
+    { base = "adv_helmet_red", new = "exo_helmet_blast" },
     { base = "medkit_large", new = "combatpack_large" },
 }
 
-complete_assembly(assembly_l2, 2, 1)
+complete_assembly(assembly_l2, "Cost: 2 multitools and 1 relic", 2, 1)
 
 -- cost the heart and 10 max HP
 assembly_l3 = {
@@ -159,7 +159,7 @@ assembly_l3 = {
     { base = "exo_nailgun", new = "uni_rifle_thompson" },
     { base = "exo_ancient_gun", new = "uni_rifle_thompson" },
 
-    { base = "adv_amp_general", new = "powerup_backpack" }, -- maybe permanent_backpack ?
+    { base = "adv_amp_general", new = "powerup_backpack" },
     { base = "exo_ancient_gun", new = "exo_pack_nano" },
     { base = "exo_ancient_gun", new = "exo_pack_onyx" },
     { base = "exo_ancient_sword", new = "exo_pack_nano" },
@@ -171,7 +171,7 @@ assembly_l3 = {
 
 }
 
-complete_assembly(assembly_l3, nil, nil, 1, 10)
+complete_assembly(assembly_l3, "Cost: -10 max HP and the frozen heart", nil, nil, 1, 10)
 
 all_assemblies = { assembly_l1, assembly_l2, assembly_l3 }
 
@@ -271,6 +271,7 @@ function run_assembly_ui( self, entity )
                     target = self,
                     parameter = item,
                     id = recipe.new,
+                    desc = recipe.desc
                 })
             end
         end
@@ -288,6 +289,7 @@ function run_assembly_ui( self, entity )
     })
     list.title = "What to assemble?"
     list.size  = coord( math.max( 30, max_len + 6 ), 0 )
+    list.fsize = 1
     ui:terminal( entity, what, list )
 end
 
@@ -298,24 +300,24 @@ register_blueprint "trait_assembly"
         name   = "Assembler",-- indicate current number of availables assemblies
         desc   = "ACTIVE SKILL - You make new toys from old ones. Manufacturer perks are kept!",
         full   = [[{!LEVEL 1} - Cost: {!1 multitool}
- PA combat knife   => quickblade
- PA combat pistol  => CRI blaster
- PB hunter rifle   => toxin rifle
- PB 9mm auto rifle => nail gun
- BA green armor    => duramesh armor
- BA yellow weapon  => red weapon{!*}
- 15 40mm grenades  => non-plasma grenade
+ PA combat knife  => quickblade
+ PA 7.62 sidearm  => CRI blaster
+ PB hunter rifle  => toxin rifle
+ PB 9mm auto rif. => nail gun
+ BA green armor   => duramesh armor
+ BA yellow weapon => red weapon{!*}
+ grenade launcher => frag/EMP/smoke nade
 {!LEVEL 2} - Cost: {!2 multitools}, {!1 relic}
  restore magrail / EGLS / ablative armor
- nail gun          => super nailgun
- AV1+ rocket laun. => bio launcher
- AV1+ blue helmet  => blast helmet
- large medkit      => large combat pack
+ nail gun         => super nailgun
+ AV rocket laun.  => bio launcher
+ AV helmet        => blast helmet
+ large medkit     => large combat pack
 {!LEVEL 3} - Cost: {!-10 max HP}, {!frozen heart}
- exotic item       => tier 1 unique{!*}
- unique item       => next tier unique{!*}
- utility AMP       => CRI backpack
- Ancient’s drop    => O or N mod pack
+ exotic item      => tier 1 unique{!*}
+ unique item      => next tier unique{!*}
+ utility AMP      => CRI backpack
+ Ancient’s drop   => O or N mod pack
   {!*} item type is preserved]],
         abbr   = "Asm",
     },
@@ -353,6 +355,13 @@ register_blueprint "trait_assembly"
                         else
                             world:play_voice("vo_special_box")
                         end
+
+                        -- local mod_to_apply = {}
+                        -- for c in ecs:children(item) do
+                        --     if c.data and c.data.mod then
+                        --         table.insert
+                        --     end
+                        -- end
 
                         local manu_to_apply = nil
                         local manufacturer_perks = {"man_vs", "man_vs_slot", "man_mdf", "man_mdf_slot", "man_js", "man_js_slot", "man_eri", "man_eri_slot", "man_at", "man_at_slot", "man_ccb", "man_ccb_slot", "man_crt", "man_crt_armor", "man_crt_head", "man_idr", "man_idr_slot", "man_ttl", "man_ttl_slot", "man_cri", "man_cri_slot"}
@@ -410,12 +419,14 @@ register_blueprint "assembly_mod"
                 player:attach( "pack_bulk" )
                 player:attach( "pack_accuracy" )
                 player:attach( "pack_accuracy" )
+                player:attach( "adv_amp_general" )
                 player:attach( "armor_green" )
                 player:attach( "adv_helmet_blue" )
                 player:attach( "frozen_heart" )
                 e = player:attach( "pistol" )
                 generator.apply_manufacturer(e, "man_ttl")
                 player:attach( "adv_bpistol" )
+                player:attach( "adv_grenade_launcher" )
                 player:attach("relic_fiend_heart")
                 player:attach( "kit_multitool", { stack = { amount = 3 } } )
                 player.progression.experience = 10000
