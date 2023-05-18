@@ -1,6 +1,14 @@
 # Assembler mod for Jupiter Hell
 
-This mod adds a new trait for each class of Jupiter Hell, called "Assembler". It is akin to "assemblies" in DRL.
+This mod adds a new trait for each class of Jupiter Hell, called "Assembler". It is akin to "[assemblies](https://drl.chaosforge.org/wiki/Assemblies)" in DRL.
+
+Requirements:
+
+| Class | Trait requirement |
+| --- | --- |
+| Marine | Army surplus L1 |
+| Scout | Hacking L1 |
+| Tech | Whizkid L1 |
 
 This traits allows to craft new items from old ones. Besides, manufacturer traits are preserved. Each level brings new assemblies. The list is:
 
@@ -44,4 +52,5 @@ Cost to assemble: -10 max HP and the frozen heart
 | Ancient’s drop** | O or N mod pack |
 
 \*: item type is preserved: exotic pistol will be assembled into the unique pistol (Love), etc.
+
 \*\*: ancient necklace, ancient armband, ancient sword, ancient gun
