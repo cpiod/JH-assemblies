@@ -53,7 +53,6 @@ complete_assembly(assembly_l1, "Cost: 1 multitool", 1)
 
 -- cost 2 multitools and a relic
 assembly_l2 = {
-    -- TODO
     { base = "exo_egls", new = "exo_egls" }, -- "reload" EGLS
     { base = "exo_mag_rifle", new = "exo_mag_rifle" }, -- "reload" railgun
     { base = "exo_armor_ablative", new = "exo_armor_ablative" }, -- "repair" ablative
@@ -321,7 +320,6 @@ register_blueprint "trait_assembly"
   {!*} item type is preserved]],
         abbr   = "Asm",
     },
- -- Level 5+ Rexio => Golden Gun ???
     callbacks = {
 
         on_use = [=[
@@ -349,35 +347,41 @@ register_blueprint "trait_assembly"
                                 break
                             end
                         end
-                        -- pay_cost(player, item, new, assembly_l1)
-                        if recipe_level == 3 then
-                            world:play_voice("vo_unique")
-                        else
-                            world:play_voice("vo_special_box")
-                        end
 
-                        -- local mod_to_apply = {}
-                        -- for c in ecs:children(item) do
-                        --     if c.data and c.data.mod then
-                        --         table.insert
-                        --     end
-                        -- end
-
-                        local manu_to_apply = nil
-                        local manufacturer_perks = {"man_vs", "man_vs_slot", "man_mdf", "man_mdf_slot", "man_js", "man_js_slot", "man_eri", "man_eri_slot", "man_at", "man_at_slot", "man_ccb", "man_ccb_slot", "man_crt", "man_crt_armor", "man_crt_head", "man_idr", "man_idr_slot", "man_ttl", "man_ttl_slot", "man_cri", "man_cri_slot"}
-                        for _,v in ipairs(manufacturer_perks) do
-                            if ecs:child(item, v) then
-                                manu_to_apply = v
-                                break
+                        if world:get_id(item) == new then
+                            -- restore
+                            if item.clip then -- restore ammo
+                                world:play_sound( "reload", player )
+                                item.clip.count = item.attributes.clip_size
                             end
-                        end
+                            if item.health then -- restore durability
+                                world:play_sound( "armor_shard", player )
+                                item.health.current = item.attributes.health
+                            end
+                        else
+                            -- transform
+                            if recipe_level == 3 then
+                                world:play_voice("vo_unique")
+                            else
+                                world:play_voice("vo_special_box")
+                            end
 
-                        level:drop_item( player, item )
-                        world:destroy(item)
-                        local new_item = player:pickup( new, true )
-                        -- apply manufacturer perk
-                        if manu_to_apply and not (new_item.data and new_item.data.unique) then
-                            generator.apply_manufacturer(new_item, manu_to_apply)
+                            local manu_to_apply = nil
+                            local manufacturer_perks = {"man_vs", "man_vs_slot", "man_mdf", "man_mdf_slot", "man_js", "man_js_slot", "man_eri", "man_eri_slot", "man_at", "man_at_slot", "man_ccb", "man_ccb_slot", "man_crt", "man_crt_armor", "man_crt_head", "man_idr", "man_idr_slot", "man_ttl", "man_ttl_slot", "man_cri", "man_cri_slot"}
+                            for _,v in ipairs(manufacturer_perks) do
+                                if ecs:child(item, v) then
+                                    manu_to_apply = v
+                                    break
+                                end
+                            end
+
+                            level:drop_item( player, item )
+                            world:destroy(item)
+                            local new_item = player:pickup( new, true )
+                            -- apply manufacturer perk
+                            if manu_to_apply and not (new_item.data and new_item.data.unique) then
+                                generator.apply_manufacturer(new_item, manu_to_apply)
+                            end
                         end
                         return 100
                     end
@@ -397,40 +401,40 @@ register_blueprint "trait_assembly"
     },
 }
 
-register_blueprint "assembly_mod"
-{
-    text = {
-        name   = "Angel of Assembly",
-        desc   = "{!MEGA CHALLENGE PACK MOD}",
-        rating = "MEDIUM",
-        abbr   = "AoA",
-        letter = "A",
-    },
-    challenge = {
-        type      = "challenge",
-    },
-    callbacks = {
-        on_create_player = [[
-            function( self, player )
-                player:attach( "pack_power" )
-                player:attach( "pack_power" )
-                player:attach( "pack_power" )
-                player:attach( "pack_bulk" )
-                player:attach( "pack_bulk" )
-                player:attach( "pack_accuracy" )
-                player:attach( "pack_accuracy" )
-                player:attach( "adv_amp_general" )
-                player:attach( "armor_green" )
-                player:attach( "adv_helmet_blue" )
-                player:attach( "frozen_heart" )
-                e = player:attach( "pistol" )
-                generator.apply_manufacturer(e, "man_ttl")
-                player:attach( "adv_bpistol" )
-                player:attach( "adv_grenade_launcher" )
-                player:attach("relic_fiend_heart")
-                player:attach( "kit_multitool", { stack = { amount = 3 } } )
-                player.progression.experience = 10000
-            end
-        ]],
-    },
-}
+-- register_blueprint "assembly_mod"
+-- {
+--     text = {
+--         name   = "Angel of Assembly",
+--         desc   = "{!MEGA CHALLENGE PACK MOD}",
+--         rating = "MEDIUM",
+--         abbr   = "AoA",
+--         letter = "A",
+--     },
+--     challenge = {
+--         type      = "challenge",
+--     },
+--     callbacks = {
+--         on_create_player = [[
+--             function( self, player )
+--                 player:attach( "pack_power" )
+--                 player:attach( "pack_power" )
+--                 player:attach( "pack_power" )
+--                 player:attach( "pack_bulk" )
+--                 player:attach( "pack_bulk" )
+--                 player:attach( "pack_accuracy" )
+--                 player:attach( "pack_accuracy" )
+--                 player:attach( "adv_amp_general" )
+--                 player:attach( "exo_armor_ablative" )
+--                 player:attach( "adv_helmet_blue" )
+--                 player:attach( "frozen_heart" )
+--                 e = player:attach( "pistol" )
+--                 generator.apply_manufacturer(e, "man_ttl")
+--                 player:attach( "adv_bpistol" )
+--                 player:attach( "exo_egls" )
+--                 player:attach("relic_fiend_heart")
+--                 player:attach( "kit_multitool", { stack = { amount = 3 } } )
+--                 player.progression.experience = 10000
+--             end
+--         ]],
+--     },
+-- }
