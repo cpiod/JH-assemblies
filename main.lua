@@ -42,7 +42,7 @@ assembly_l1 = {
     { base = "ashotgun", new = "dshotgun", B = 1, A = 1 }, -- auto-shotgun to dual shotgun
     { base = "rocket_launcher", new = "energy_cannon", B = 1, A = 1 },
 
-    -- grenades
+    -- grenades -- TODO
     { base = "ammo_40", new = "smoke_grenade", base_amount = 15 },
     { base = "ammo_40", new = "frag_grenade", base_amount = 15 },
     { base = "ammo_40", new = "krak_grenade", base_amount = 15 },
@@ -55,6 +55,7 @@ complete_assembly(assembly_l1, 1)
 
 -- cost 2 multitools and a relic
 assembly_l2 = {
+    -- TODO
     { base = "exo_egls", new = "exo_egls" }, -- "reload" EGLS
     { base = "exo_mag_rifle", new = "exo_mag_rifle" }, -- "reload" railgun
     { base = "exo_armor_ablative", new = "exo_armor_ablative" }, -- "repair" ablative
@@ -69,6 +70,10 @@ complete_assembly(assembly_l2, 2, 1)
 -- cost the heart and 10 max HP
 assembly_l3 = {
     -- tier 1 -> tier 2, tier 2 -> tier 3 weapon of the same type, requires heart so cannot be cumulated with dark cathedral
+    { base = "uni_helmet_fiendcrown", new = "uni_helmet_overlord" },
+    { base = "uni_helmet_overlord", new = "uni_helmet_firecrown" },
+    { base = "uni_armor_shadowcloak", new = "uni_armor_cybersuit" },
+    { base = "uni_armor_cybersuit", new = "uni_armor_exosuit" },
     { base = "uni_revolver_love", new = "uni_pistol_hate" },
     { base = "uni_pistol_hate", new = "uni_pistol_death" },
     { base = "uni_rifle_thompson", new = "uni_rifle_hammerhead" },
@@ -87,6 +92,25 @@ assembly_l3 = {
     { base = "uni_vulcan", new = "uni_apocalypse" },
 
     -- upgrade exo to tier 1 unique
+    { base = "exo_helmet_blast", new = "uni_helmet_fiendcrown" },
+    { base = "exo_helmet_battle", new = "uni_helmet_fiendcrown" },
+    { base = "exo_helmet_marine", new = "uni_helmet_fiendcrown" },
+    { base = "exo_helmet_scout", new = "uni_helmet_fiendcrown" },
+    { base = "exo_helmet_tech", new = "uni_helmet_fiendcrown" },
+    { base = "exo_visor_command", new = "uni_helmet_fiendcrown" },
+    { base = "exo_visor_supply", new = "uni_helmet_fiendcrown" },
+    { base = "exo_visor_analytic", new = "uni_helmet_fiendcrown" },
+
+    { base = "exo_armor_guardian", new = "uni_armor_shadowcloak" },
+    { base = "exo_armor_ablative", new = "uni_armor_shadowcloak" },
+    { base = "exo_armor_medifiber", new = "uni_armor_shadowcloak" },
+    { base = "exo_armor_duramesh", new = "uni_armor_shadowcloak" },
+    { base = "exo_armor_necrotic", new = "uni_armor_shadowcloak" },
+    { base = "exo_armor_scout", new = "uni_armor_shadowcloak" },
+    { base = "exo_armor_tech", new = "uni_armor_shadowcloak" },
+    { base = "exo_armor_marine", new = "uni_armor_shadowcloak" },
+
+
     { base = "exo_saw", new = "uni_knife" },
     { base = "exo_knife", new = "uni_knife" },
     { base = "exo_sword", new = "uni_knife" },
@@ -207,13 +231,9 @@ function get_recipes(player, item, recipes, recipes_list)
         end
     end
 
-    -- TODO handle trait level
-    -- TODO handle other requirements (heart, relic, multitool, etc.)
-
     local mods = {"P","A","B","S","V","C","E","O","N"}
     for _,v in ipairs(recipes_list) do
         if world:get_id(item) == v.base then
-        -- TODO: be able to specify a sub-blueprint in base (like relic_major)
             local good = true
             -- check all requirements
             for _,mod in ipairs(mods) do
@@ -257,7 +277,7 @@ function run_assembly_ui( self, entity )
     end
 
     if #list == 0 then
-        ui:set_hint( "{RNothing to assemble!}", 1001, 0 )
+        ui:set_hint( "Nothing to assemble!", 1001, 0 )
         return
     end
 
@@ -317,6 +337,7 @@ register_blueprint "trait_assembly"
             function ( self, player, level, param, id )
                 if level then -- UI
                     if param then
+                        local recipe_level = nil
                         local item = param
                         local new = world:resolve_hash( id )
                         for i = 1, player.attributes.assembly_level do
@@ -332,10 +353,23 @@ register_blueprint "trait_assembly"
                         else
                             world:play_voice("vo_special_box")
                         end
+
+                        local manu_to_apply = nil
+                        local manufacturer_perks = {"man_vs", "man_vs_slot", "man_mdf", "man_mdf_slot", "man_js", "man_js_slot", "man_eri", "man_eri_slot", "man_at", "man_at_slot", "man_ccb", "man_ccb_slot", "man_crt", "man_crt_armor", "man_crt_head", "man_idr", "man_idr_slot", "man_ttl", "man_ttl_slot", "man_cri", "man_cri_slot"}
+                        for _,v in ipairs(manufacturer_perks) do
+                            if ecs:child(item, v) then
+                                manu_to_apply = v
+                                break
+                            end
+                        end
+
                         level:drop_item( player, item )
                         world:destroy(item)
-                        -- TODO: apply manufacturer perk?
-                        player:pickup( new, true )
+                        local new_item = player:pickup( new, true )
+                        -- apply manufacturer perk
+                        if manu_to_apply and not (new_item.data and new_item.data.unique) then
+                            generator.apply_manufacturer(new_item, manu_to_apply)
+                        end
                         return 100
                     end
                     return 0
@@ -379,7 +413,8 @@ register_blueprint "assembly_mod"
                 player:attach( "armor_green" )
                 player:attach( "adv_helmet_blue" )
                 player:attach( "frozen_heart" )
-                player:attach( "pistol" )
+                e = player:attach( "pistol" )
+                generator.apply_manufacturer(e, "man_ttl")
                 player:attach( "adv_bpistol" )
                 player:attach("relic_fiend_heart")
                 player:attach( "kit_multitool", { stack = { amount = 3 } } )
