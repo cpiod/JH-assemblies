@@ -28,7 +28,6 @@ assembly_l1 = {
     { base = "apistol", new = "exo_blaster", A = 1, P = 1 },
     { base = "hunter_rifle", new = "exo_toxi_rifle", P = 1, B = 1 },
     { base = "auto_rifle", new = "exo_nailgun", B = 1, P = 1 },
-    { base = "armor_green", new = "exo_armor_duramesh", B = 1, A = 1 },
 
     -- yellow to red
     { base = "pistol", new = "apistol", B = 1, A = 1 }, -- pistol to 7.62 sidearm
@@ -57,10 +56,19 @@ assembly_l2 = {
     { base = "exo_mag_rifle", new = "exo_mag_rifle" }, -- "reload" railgun
     { base = "exo_armor_ablative", new = "exo_armor_ablative" }, -- "repair" ablative
     { base = "exo_nailgun", new = "exo_snailgun" },
-    { base = "adv_rocket_launcher", new = "exo_toxin_launcher" },
-    { base = "adv_helmet_green", new = "exo_helmet_blast" },
-    { base = "adv_helmet_blue", new = "exo_helmet_blast" },
-    { base = "adv_helmet_red", new = "exo_helmet_blast" },
+    { base = "rocket_launcher", new = "exo_toxin_launcher", P = 1, B = 1, A = 1 },
+    { base = "helmet_green", new = "exo_helmet_scout", P = 1, B = 1, A = 1 },
+    { base = "helmet_blue", new = "exo_helmet_scout", P = 1, B = 1, A = 1 },
+    { base = "helmet_red", new = "exo_helmet_scout", P = 1, B = 1, A = 1 },
+    { base = "helmet_green", new = "exo_helmet_marine", P = 1, B = 1, A = 1 },
+    { base = "helmet_blue", new = "exo_helmet_marine", P = 1, B = 1, A = 1 },
+    { base = "helmet_red", new = "exo_helmet_marine", P = 1, B = 1, A = 1 },
+    { base = "helmet_green", new = "exo_helmet_tech", P = 1, B = 1, A = 1 },
+    { base = "helmet_blue", new = "exo_helmet_tech", P = 1, B = 1, A = 1 },
+    { base = "helmet_red", new = "exo_helmet_tech", P = 1, B = 1, A = 1 },
+    { base = "armor_green", new = "exo_armor_duramesh", P = 1, B = 1, A = 1 },
+    { base = "armor_blue", new = "exo_armor_duramesh", P = 1, B = 1, A = 1 },
+    { base = "armor_red", new = "exo_armor_duramesh", P = 1, B = 1, A = 1 },
     { base = "medkit_large", new = "combatpack_large" },
 }
 
@@ -177,6 +185,16 @@ all_assemblies = { assembly_l1, assembly_l2, assembly_l3 }
 function can_pay(player, base, new, recipes_list)
     for _,v in ipairs(recipes_list) do
         if base == v.base and new == v.new then -- found it
+            if string.match(v.new,"scout") and player.text.klass ~= "scout" then
+                return false
+            end
+            if string.match(v.new,"tech") and player.text.klass ~= "tech" then
+                return false
+            end
+            if string.match(v.new,"marine") and player.text.klass ~= "marine" then
+                return false
+            end
+
             -- can pay?
             return not ((v.mt and world:has_item( player, "kit_multitool" ) < v.mt) or
             (v.heart and world:has_item( player, "frozen_heart") == 0) or
@@ -303,14 +321,14 @@ register_blueprint "trait_assembly"
  PA 7.62 sidearm  => CRI blaster
  PB hunter rifle  => toxin rifle
  PB 9mm auto rif. => nail gun
- BA green armor   => duramesh armor
  BA yellow weapon => red weapon{!*}
+ PBA armor        => duramesh armor
+ PBA helmet       => class helmet
  grenade launcher => frag/EMP/smoke nade
 {!LEVEL 2} - Cost: {!2 multitools}, {!1 relic}
  restore magrail / EGLS / ablative armor
  nail gun         => super nailgun
- AV rocket laun.  => bio launcher
- AV helmet        => blast helmet
+ PBA rocket laun. => bio launcher
  large medkit     => large combat pack
 {!LEVEL 3} - Cost: {!-10 max HP}, {!frozen heart}
  exotic item      => tier 1 unique{!*}
@@ -378,7 +396,9 @@ register_blueprint "trait_assembly"
                             level:drop_item( player, item )
                             world:destroy(item)
                             local new_item = player:pickup( new, true )
+
                             -- apply manufacturer perk
+                            -- blaster will override anyway
                             if manu_to_apply and not (new_item.data and new_item.data.unique) then
                                 generator.apply_manufacturer(new_item, manu_to_apply)
                             end
@@ -427,9 +447,8 @@ register_blueprint "trait_assembly"
 --                 player:attach( "exo_armor_ablative" )
 --                 player:attach( "adv_helmet_blue" )
 --                 player:attach( "frozen_heart" )
---                 e = player:attach( "pistol" )
+--                 e = player:attach( "apistol" )
 --                 generator.apply_manufacturer(e, "man_ttl")
---                 player:attach( "adv_bpistol" )
 --                 player:attach( "exo_egls" )
 --                 player:attach("relic_fiend_heart")
 --                 player:attach( "kit_multitool", { stack = { amount = 3 } } )
