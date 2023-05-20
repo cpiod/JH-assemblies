@@ -359,13 +359,8 @@ register_blueprint "trait_assembly"
         on_post_command = [=[
             function ( self, actor, cmt, weapon, time )
                 local list = get_all_possible_assemblies(self, actor)
-                if #list == 0 then
-                    self.text.name = "{dAssembler}"
-                else
-                    self.text.name = "Assembler ("..#list..")"
-                end
+                self.skill.charge = #list
             end
-
         ]=],
 
         on_activate = [=[
@@ -434,43 +429,7 @@ register_blueprint "trait_assembly"
     },
     skill = {
         cooldown = 0,
-        cost = 0
+        cost = 0,
+        charge = 0
     },
 }
-
--- register_blueprint "assembly_mod"
--- {
---     text = {
---         name   = "Angel of Assembly",
---         desc   = "{!MEGA CHALLENGE PACK MOD}",
---         rating = "MEDIUM",
---         abbr   = "AoA",
---         letter = "A",
---     },
---     challenge = {
---         type      = "challenge",
---     },
---     callbacks = {
---         on_create_player = [[
---             function( self, player )
---                 player:attach( "pack_power" )
---                 player:attach( "pack_power" )
---                 player:attach( "pack_power" )
---                 player:attach( "pack_bulk" )
---                 player:attach( "pack_bulk" )
---                 player:attach( "pack_accuracy" )
---                 player:attach( "pack_accuracy" )
---                 player:attach( "adv_amp_general" )
---                 player:attach( "exo_armor_ablative" )
---                 player:attach( "adv_helmet_blue" )
---                 player:attach( "frozen_heart" )
---                 e = player:attach( "apistol" )
---                 generator.apply_manufacturer(e, "man_ttl")
---                 player:attach( "exo_egls" )
---                 player:attach("relic_fiend_heart")
---                 player:attach( "kit_multitool", { stack = { amount = 3 } } )
---                 player.progression.experience = 10000
---             end
---         ]],
---     },
--- }
