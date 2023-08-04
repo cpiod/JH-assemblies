@@ -46,6 +46,22 @@ assembly_l1 = {
     { base = "grenade_launcher", new = "frag_grenade" },
     { base = "grenade_launcher", new = "emp_grenade" },
     { base = "grenade_launcher", new = "smoke_grenade" },
+
+    -- helmet
+    { base = "helmet_green", new = "exo_helmet_scout", P = 1, B = 1, A = 1 },
+    { base = "helmet_blue", new = "exo_helmet_scout", P = 1, B = 1, A = 1 },
+    { base = "helmet_red", new = "exo_helmet_scout", P = 1, B = 1, A = 1 },
+    { base = "helmet_green", new = "exo_helmet_marine", P = 1, B = 1, A = 1 },
+    { base = "helmet_blue", new = "exo_helmet_marine", P = 1, B = 1, A = 1 },
+    { base = "helmet_red", new = "exo_helmet_marine", P = 1, B = 1, A = 1 },
+    { base = "helmet_green", new = "exo_helmet_tech", P = 1, B = 1, A = 1 },
+    { base = "helmet_blue", new = "exo_helmet_tech", P = 1, B = 1, A = 1 },
+    { base = "helmet_red", new = "exo_helmet_tech", P = 1, B = 1, A = 1 },
+
+    -- armor
+    { base = "armor_green", new = "exo_armor_duramesh", P = 1, B = 1, A = 1 },
+    { base = "armor_blue", new = "exo_armor_duramesh", P = 1, B = 1, A = 1 },
+    { base = "armor_red", new = "exo_armor_duramesh", P = 1, B = 1, A = 1 },
 }
 
 complete_assembly(assembly_l1, "Cost: 1 multitool", 1)
@@ -57,18 +73,6 @@ assembly_l2 = {
     { base = "exo_armor_ablative", new = "exo_armor_ablative" }, -- "repair" ablative
     { base = "exo_nailgun", new = "exo_snailgun" },
     { base = "rocket_launcher", new = "exo_toxin_launcher", P = 1, B = 1, A = 1 },
-    { base = "helmet_green", new = "exo_helmet_scout", P = 1, B = 1, A = 1 },
-    { base = "helmet_blue", new = "exo_helmet_scout", P = 1, B = 1, A = 1 },
-    { base = "helmet_red", new = "exo_helmet_scout", P = 1, B = 1, A = 1 },
-    { base = "helmet_green", new = "exo_helmet_marine", P = 1, B = 1, A = 1 },
-    { base = "helmet_blue", new = "exo_helmet_marine", P = 1, B = 1, A = 1 },
-    { base = "helmet_red", new = "exo_helmet_marine", P = 1, B = 1, A = 1 },
-    { base = "helmet_green", new = "exo_helmet_tech", P = 1, B = 1, A = 1 },
-    { base = "helmet_blue", new = "exo_helmet_tech", P = 1, B = 1, A = 1 },
-    { base = "helmet_red", new = "exo_helmet_tech", P = 1, B = 1, A = 1 },
-    { base = "armor_green", new = "exo_armor_duramesh", P = 1, B = 1, A = 1 },
-    { base = "armor_blue", new = "exo_armor_duramesh", P = 1, B = 1, A = 1 },
-    { base = "armor_red", new = "exo_armor_duramesh", P = 1, B = 1, A = 1 },
     { base = "medkit_large", new = "combatpack_large" },
 }
 
@@ -185,13 +189,13 @@ all_assemblies = { assembly_l1, assembly_l2, assembly_l3 }
 function can_pay(player, base, new, recipes_list)
     for _,v in ipairs(recipes_list) do
         if base == v.base and new == v.new then -- found it
-            if string.match(v.new,"scout") and player.text.klass ~= "scout" then
+            if string.match(v.new,"scout") and world:get_id(player) ~= "player_scout" then
                 return false
             end
-            if string.match(v.new,"tech") and player.text.klass ~= "tech" then
+            if string.match(v.new,"tech") and world:get_id(player) ~= "player_technician" then
                 return false
             end
-            if string.match(v.new,"marine") and player.text.klass ~= "marine" then
+            if string.match(v.new,"marine") and world:get_id(player) ~= "player_marine" then
                 return false
             end
 
