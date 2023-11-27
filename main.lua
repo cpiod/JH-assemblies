@@ -344,7 +344,7 @@ register_blueprint "trait_assembly"
  unique item      => next tier unique{!*}
  utility AMP      => CRI backpack
  Ancient’s drop   => O or N mod pack
-  {!*} item type is preserved]],
+  {!*} same type (SMG, semi, armor, etc.)]],
         abbr   = "Asm",
     },
     callbacks = {
