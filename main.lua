@@ -343,7 +343,7 @@ register_blueprint "trait_assembly"
  exotic item      => tier 1 unique{!*}
  unique item      => next tier unique{!*}
  utility AMP      => CRI backpack
- Ancient’s drop   => O or N mod pack
+ Ancient’s drop   => Onyx/Nano mod pack
   {!*} same type (SMG, semi, armor, etc.)]],
         abbr   = "Asm",
     },
