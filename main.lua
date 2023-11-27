@@ -330,7 +330,7 @@ register_blueprint "trait_assembly"
  PA 7.62 sidearm  => CRI blaster
  PB hunter rifle  => toxin rifle
  PB 9mm auto rif. => nail gun
- BA yellow weapon => red weapon{!*}
+ BA common weapon => rare weapon{!*}
  PBA armor        => duramesh armor
  PBA helmet       => class helmet
  grenade launcher => frag/EMP/smoke nade
